@@ -2,13 +2,16 @@ package gui;
 import java.io.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.table.DefaultTableModel;
 import logica.Conector;
 
 
@@ -17,10 +20,14 @@ public class Noticias extends javax.swing.JFrame {
     Conector con=new Conector();
     // se asigna la conexion a la base de datos con la variable cn
     Connection cn=con.conecta();
+    
+    DefaultTableModel modelo;
+    
     public Noticias() {
         initComponents();
         this.setLocationRelativeTo(null);
         inicio();
+        mostrarTabla();
     }
 private void inicio(){
     txtTags.setEnabled(false);
@@ -85,7 +92,7 @@ private void fecha(){
         jLabel11 = new javax.swing.JLabel();
         jPanel5 = new javax.swing.JPanel();
         jScrollPane3 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        tabla = new javax.swing.JTable();
         jPanel6 = new javax.swing.JPanel();
         txtImagen = new javax.swing.JTextField();
         btAgregar = new javax.swing.JButton();
@@ -218,7 +225,7 @@ private void fecha(){
                 .addComponent(btEliminar)
                 .addGap(18, 18, 18)
                 .addComponent(jButton6)
-                .addContainerGap(20, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder("Busqueda"));
@@ -264,10 +271,10 @@ private void fecha(){
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(jDateChooser2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(jPanel4Layout.createSequentialGroup()
-                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel8)
-                            .addComponent(jLabel10)
-                            .addComponent(jLabel11))
+                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel10, javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jLabel11, javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jLabel8))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jDateChooser1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -280,7 +287,7 @@ private void fecha(){
 
         jPanel5.setBorder(javax.swing.BorderFactory.createTitledBorder("Listado"));
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        tabla.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null},
                 {null, null, null, null},
@@ -291,7 +298,7 @@ private void fecha(){
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
-        jScrollPane3.setViewportView(jTable1);
+        jScrollPane3.setViewportView(tabla);
 
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
@@ -399,7 +406,39 @@ private void fecha(){
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+private void mostrarTabla(){
+        String[] cabecera = {"Id", "Fecha", "Titulo"};
+        String[] registros = new String[7];
+        String sql = "SELECT * FROM noticias";
+        //establecemos los anchos en pixeles de las columnas
+        int[] anchos = {0, 250, 600};
 
+        modelo = new DefaultTableModel(null, cabecera);
+        try {
+
+            Statement table;
+            table = cn.createStatement();
+            ResultSet rs = table.executeQuery(sql);
+            while (rs.next()) {
+                registros[0] = rs.getString("id");
+                registros[1] = rs.getString("fecha");
+                registros[2] = rs.getString("titulo");
+                
+                modelo.addRow(registros);
+
+            }
+            tabla.setModel(modelo);
+            for (int i = 0; i < cabecera.length; i++) {
+                tabla.getColumnModel().getColumn(i).setPreferredWidth(anchos[i]);
+                tabla.setFont(new java.awt.Font("Tahoma", 0, 12));
+            }
+            tabla.getColumnModel().getColumn(0).setMaxWidth(0);
+        tabla.getColumnModel().getColumn(0).setMinWidth(0);
+        tabla.getColumnModel().getColumn(0).setPreferredWidth(0);
+        } catch (SQLException ex) {
+            System.out.println("Sin poder ejecutar el query a la tabla");
+        }
+    }
     private void btNuevaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btNuevaActionPerformed
         if (btNueva.getText().equals("Nueva")){
         nuevo();
@@ -499,9 +538,9 @@ private void fecha(){
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JTable jTable1;
     private javax.swing.JTextField jTextField4;
     private javax.swing.JTextField jTextField5;
+    private javax.swing.JTable tabla;
     private javax.swing.JLabel txtFecha;
     private javax.swing.JTextField txtImagen;
     private javax.swing.JTextArea txtIntro;
