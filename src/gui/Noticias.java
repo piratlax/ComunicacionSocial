@@ -50,7 +50,7 @@ public class Noticias extends javax.swing.JFrame {
         inicio();
         mostrarTabla();
         txtId.setVisible(false);
-        
+
     }
 
     private void inicio() {
@@ -114,8 +114,6 @@ public class Noticias extends javax.swing.JFrame {
         jdInicio = new com.toedter.calendar.JDateChooser();
         jdFinal = new com.toedter.calendar.JDateChooser();
         jLabel9 = new javax.swing.JLabel();
-        jLabel10 = new javax.swing.JLabel();
-        txtBuscaTags = new javax.swing.JTextField();
         txtBuscaTexto = new javax.swing.JTextField();
         jLabel11 = new javax.swing.JLabel();
         jPanel5 = new javax.swing.JPanel();
@@ -287,8 +285,6 @@ public class Noticias extends javax.swing.JFrame {
 
         jLabel9.setText("Y");
 
-        jLabel10.setText("Tags");
-
         jLabel11.setText("Texto");
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
@@ -307,15 +303,10 @@ public class Noticias extends javax.swing.JFrame {
                     .addComponent(jLabel8))
                 .addGap(18, 18, 18)
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(txtBuscaTags, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel10))
-                .addGap(18, 18, 18)
-                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(txtBuscaTexto)
                     .addGroup(jPanel4Layout.createSequentialGroup()
                         .addComponent(jLabel11)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(txtBuscaTexto))
-                .addContainerGap())
+                        .addGap(0, 0, Short.MAX_VALUE))))
         );
         jPanel4Layout.setVerticalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -324,16 +315,13 @@ public class Noticias extends javax.swing.JFrame {
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(jdFinal, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(jPanel4Layout.createSequentialGroup()
-                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel10, javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jLabel11, javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jLabel8))
+                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel8)
+                            .addComponent(jLabel11))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jdInicio, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(txtBuscaTags, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(txtBuscaTexto, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                            .addComponent(txtBuscaTexto, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addComponent(jLabel9))
                 .addContainerGap(18, Short.MAX_VALUE))
         );
@@ -550,16 +538,16 @@ private void mostrarTabla() {
                     subeImagen();
                     System.out.println("imagen subida");
                     //actualiza BD
-                    String id=tabla.getValueAt(0,0).toString();
-                    
+                    String id = tabla.getValueAt(0, 0).toString();
+
                     //actualizamos la bd
                     Statement st;
-                    st=cn.createStatement();
-                    st.executeUpdate("UPDATE noticias set imagen='"+id+".png' WHERE id='"+id+"'");
+                    st = cn.createStatement();
+                    st.executeUpdate("UPDATE noticias set imagen='" + id + ".png' WHERE id='" + id + "'");
                     System.out.println("base de datos actualizada");
                     //Limpiamos
                     JOptionPane.showMessageDialog(this, "Noticia se ha publicado correctamente");
-                    Noticias frm=new Noticias();
+                    Noticias frm = new Noticias();
                     frm.setVisible(true);
                     this.dispose();
                 } catch (SQLException e) {
@@ -591,7 +579,7 @@ private void mostrarTabla() {
                 System.out.println("Iniciando sesión Satisfactoriamente");
                 int replay = client.getReplyCode();
                 if (FTPReply.isPositiveCompletion(replay)) {
-                    File file = new File(tabla.getValueAt(0,0).toString()+".png");
+                    File file = new File(tabla.getValueAt(0, 0).toString() + ".png");
                     FileInputStream input = new FileInputStream(file);
                     client.setFileType(FTP.BINARY_FILE_TYPE);
                     client.enterLocalPassiveMode();
@@ -650,144 +638,193 @@ private void mostrarTabla() {
 
     private void btEditarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btEditarActionPerformed
         //editamos la nota
-        if (btEditar.getText().equals("Editar")){
-        int fila=tabla.getSelectedRow();
-       if (fila<0){
-                       JOptionPane.showMessageDialog(this, "Selecciona un elemento de la tabla");
-                 
-                            }
-       if (fila>=0){
-          btEditar.setText("Actualizar");
-          btNueva.setEnabled(false);
-          btAgregar.setEnabled(false);
-          btEliminar.setEnabled(false);
-          
-          txtTags.setEnabled(true);
-          txtTitulo.setEnabled(true);
-          txtIntro.setEnabled(true);
-          txtTexto.setEnabled(true);
-          String buscarNoticia;
-          buscarNoticia = tabla.getValueAt(fila,0).toString();
-          
-          try{
-              Statement buscar=cn.createStatement();
-              String sql=("SELECT * FROM noticias WHERE id='"+buscarNoticia+"'");
-              ResultSet resultado= buscar.executeQuery(sql);
-              
-              while (resultado.next()){
-                 txtId.setText(resultado.getString("id")); 
-                 txtTags.setText(resultado.getString("tags")); 
-                 txtFecha.setText(resultado.getString("fecha"));
-                 txtTitulo.setText(resultado.getString("titulo"));
-                 txtIntro.setText(resultado.getString("intro"));
-                 txtTexto.setText(resultado.getString("texto"));
-                 
-                 
-                 
-              }
-          } catch (SQLException ex) {
-               Logger.getLogger(Noticias.class.getName()).log(Level.SEVERE, null, ex);
-           }
-       }
-       }else if (btEditar.getText().equals("Actualizar")){
-           
-           String actualizar="update noticias set tags=?,titulo=?,intro=?,texto=? WHERE id='"+txtId.getText()+"'";
-        
-        try {
-            PreparedStatement ps;
-            ps = cn.prepareStatement(actualizar);
-            
-            ps.setString(1,txtTags.getText());
-            ps.setString(2,txtTitulo.getText());
-            ps.setString(3,txtIntro.getText());
-            ps.setString(4,txtTexto.getText());
-            
-            ps.executeUpdate();
-            
-            JOptionPane.showMessageDialog(null, "La noticia se ha actualizado correctamente");
-            //ya que se grabo en la base de datos pasamos a dejar todo de nuevo para un nueva noticia
-            btNueva.setEnabled(true);
-            btEditar.setEnabled(true);
-            btEditar.setText("Editar");
-            btEliminar.setEnabled(true);
-            btSalir.setEnabled(true);
-            btBuscar.setEnabled(true);
-            
-            txtTags.setText("");
-            txtFecha.setText("");
-            txtTitulo.setText("");
-            txtIntro.setText("");
-            txtTexto.setText("");
-            
-            mostrarTabla();
-            
-            
-            
-            // creamos la imagen de default del calzado
-            ImageIcon imagenDefault = new ImageIcon(getClass().getResource("/imagenes/noticia.png"));
-            imgNoticia.setIcon(imagenDefault);
-        } catch (SQLException ex) {
-            Logger.getLogger(Noticias.class.getName()).log(Level.SEVERE, null, ex);
-            JOptionPane.showMessageDialog(null, "Hay un problema con la BD, la noticia no se ha actualizado");
+        if (btEditar.getText().equals("Editar")) {
+            int fila = tabla.getSelectedRow();
+            if (fila < 0) {
+                JOptionPane.showMessageDialog(this, "Selecciona un elemento de la tabla");
+
+            }
+            if (fila >= 0) {
+                btEditar.setText("Actualizar");
+                btNueva.setEnabled(false);
+                btAgregar.setEnabled(false);
+                btEliminar.setEnabled(false);
+                btBuscar.setEnabled(false);
+
+                txtTags.setEnabled(true);
+                txtTitulo.setEnabled(true);
+                txtIntro.setEnabled(true);
+                txtTexto.setEnabled(true);
+                String buscarNoticia;
+                buscarNoticia = tabla.getValueAt(fila, 0).toString();
+
+                try {
+                    Statement buscar = cn.createStatement();
+                    String sql = ("SELECT * FROM noticias WHERE id='" + buscarNoticia + "'");
+                    ResultSet resultado = buscar.executeQuery(sql);
+
+                    while (resultado.next()) {
+                        txtId.setText(resultado.getString("id"));
+                        txtTags.setText(resultado.getString("tags"));
+                        txtFecha.setText(resultado.getString("fecha"));
+                        txtTitulo.setText(resultado.getString("titulo"));
+                        txtIntro.setText(resultado.getString("intro"));
+                        txtTexto.setText(resultado.getString("texto"));
+
+                    }
+                } catch (SQLException ex) {
+                    Logger.getLogger(Noticias.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        } else if (btEditar.getText().equals("Actualizar")) {
+
+            String actualizar = "update noticias set tags=?,titulo=?,intro=?,texto=? WHERE id='" + txtId.getText() + "'";
+
+            try {
+                PreparedStatement ps;
+                ps = cn.prepareStatement(actualizar);
+
+                ps.setString(1, txtTags.getText());
+                ps.setString(2, txtTitulo.getText());
+                ps.setString(3, txtIntro.getText());
+                ps.setString(4, txtTexto.getText());
+
+                ps.executeUpdate();
+
+                JOptionPane.showMessageDialog(null, "La noticia se ha actualizado correctamente");
+                //ya que se grabo en la base de datos pasamos a dejar todo de nuevo para un nueva noticia
+                btNueva.setEnabled(true);
+                btEditar.setEnabled(true);
+                btEditar.setText("Editar");
+                btEliminar.setEnabled(true);
+                btSalir.setEnabled(true);
+                btBuscar.setEnabled(true);
+
+                txtTags.setText("");
+                txtFecha.setText("");
+                txtTitulo.setText("");
+                txtIntro.setText("");
+                txtTexto.setText("");
+
+                mostrarTabla();
+
+                // creamos la imagen de default del calzado
+                ImageIcon imagenDefault = new ImageIcon(getClass().getResource("/imagenes/noticia.png"));
+                imgNoticia.setIcon(imagenDefault);
+            } catch (SQLException ex) {
+                Logger.getLogger(Noticias.class.getName()).log(Level.SEVERE, null, ex);
+                JOptionPane.showMessageDialog(null, "Hay un problema con la BD, la noticia no se ha actualizado");
+            }
+
         }
-          
-       }
-        
-        
+
+
     }//GEN-LAST:event_btEditarActionPerformed
 
     private void btEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btEliminarActionPerformed
-         //Borrado de una noticia
-        
+        //Borrado de una noticia
+
         int fila = tabla.getSelectedRow();
-        
-       if (fila>=0){
-           String BuscarProducto;
-           BuscarProducto = tabla.getValueAt(fila, 0).toString();
-           
-           try{
-            Statement buscar = cn.createStatement();
-            ResultSet resultado = buscar.executeQuery( "SELECT * FROM noticias WHERE id='"+BuscarProducto+"'" );
-            while ( resultado.next() ) {
-              int respuesta=JOptionPane.showConfirmDialog(this, "Se va a eliminar la Siguiente nota\nfecha:"
-               +tabla.getValueAt(fila, 1).toString()+"\nTitulo:"
-               +tabla.getValueAt(fila, 2).toString(), "Confirmacion", 2);
-              
-              
-       //verificamos que informacion se va a eliminar 
-        if (respuesta==0){
-            try{
-            String sql="DELETE FROM noticias WHERE id="+tabla.getValueAt(fila,0);
-            Statement st;
-            st=cn.createStatement();
-            st.executeUpdate(sql);
-            JOptionPane.showMessageDialog(null,"Nota Eliminada");
-            mostrarTabla();
-            st.close();
-            
-            
+
+        if (fila >= 0) {
+            String BuscarProducto;
+            BuscarProducto = tabla.getValueAt(fila, 0).toString();
+
+            try {
+                Statement buscar = cn.createStatement();
+                ResultSet resultado = buscar.executeQuery("SELECT * FROM noticias WHERE id='" + BuscarProducto + "'");
+                while (resultado.next()) {
+                    int respuesta = JOptionPane.showConfirmDialog(this, "Se va a eliminar la Siguiente nota\nfecha:"
+                            + tabla.getValueAt(fila, 1).toString() + "\nTitulo:"
+                            + tabla.getValueAt(fila, 2).toString(), "Confirmacion", 2);
+
+                    //verificamos que informacion se va a eliminar 
+                    if (respuesta == 0) {
+                        try {
+                            String sql = "DELETE FROM noticias WHERE id=" + tabla.getValueAt(fila, 0);
+                            Statement st;
+                            st = cn.createStatement();
+                            st.executeUpdate(sql);
+                            JOptionPane.showMessageDialog(null, "Nota Eliminada");
+                            mostrarTabla();
+                            st.close();
+
+                        } catch (Exception ex) {
+                            JOptionPane.showMessageDialog(null, "no se elimino el elemento");
+                        }
+
+                    }
+                }
+            } catch (SQLException ex) {
+                System.out.println("Sin poder ejecutar el query a la tabla");
+            }
         }
-        catch (Exception ex){
-          JOptionPane.showMessageDialog(null,"no se elimino el elemento");
-        }
-                
-            }
-            }
-            }
-            catch (SQLException ex){
-           System.out.println ("Sin poder ejecutar el query a la tabla");
-       }
-           }
-       
+
     }//GEN-LAST:event_btEliminarActionPerformed
 
     private void btSalirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btSalirActionPerformed
-       System.exit(0);
+        System.exit(0);
     }//GEN-LAST:event_btSalirActionPerformed
 
     private void btBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btBuscarActionPerformed
         //buscamos noticias
+        String fechaInicio = null;
+        String fechaFinal = null;
+        String sql = "select * from noticias ORDER BY id DESC";
+        String texto = txtBuscaTexto.getText();
+        try {
+            String formato = ("yyyy-MM-dd HH:mm:ss");
+            Date date = jdInicio.getDate();
+            SimpleDateFormat sdf = new SimpleDateFormat(formato);
+            fechaInicio = String.valueOf(sdf.format(date));
+
+            String formato2 = jdFinal.getDateFormatString();
+            Date date2 = jdFinal.getDate();
+            SimpleDateFormat sdf2 = new SimpleDateFormat(formato);
+            fechaFinal = String.valueOf(sdf2.format(date2));
+            sql = "SELECT * FROM noticias where  (stamp between '"+fechaInicio+"' and '"+fechaFinal+"') and titulo like '%"+texto+"%'";
+        } catch (Exception e) {
+        JOptionPane.showMessageDialog(null, "Selecciona una fecha");
+        mostrarTabla();
+        }
         
+        
+        try {
+            String[] cabecera = {"Id", "Fecha", "Titulo"};
+            String[] registros = new String[3];
+
+            //establecemos los anchos en pixeles de las columnas
+            int[] anchos = {0, 250, 600};
+
+            modelo = new DefaultTableModel(null, cabecera);
+            try {
+
+                Statement table;
+                table = cn.createStatement();
+                ResultSet rs = table.executeQuery(sql);
+                while (rs.next()) {
+                    registros[0] = rs.getString("id");
+                    registros[1] = rs.getString("fecha");
+                    registros[2] = rs.getString("titulo");
+
+                    modelo.addRow(registros);
+
+                }
+                tabla.setModel(modelo);
+                for (int i = 0; i < cabecera.length; i++) {
+                    tabla.getColumnModel().getColumn(i).setPreferredWidth(anchos[i]);
+                    tabla.setFont(new java.awt.Font("Tahoma", 0, 12));
+                }
+                tabla.getColumnModel().getColumn(0).setMaxWidth(0);
+                tabla.getColumnModel().getColumn(0).setMinWidth(0);
+                tabla.getColumnModel().getColumn(0).setPreferredWidth(0);
+            } catch (SQLException ex) {
+                System.out.println("Sin poder ejecutar el query a la tabla");
+            }
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, e.getMessage());
+        }
     }//GEN-LAST:event_btBuscarActionPerformed
 
     /**
@@ -834,7 +871,6 @@ private void mostrarTabla() {
     private javax.swing.JButton btSalir;
     private javax.swing.JLabel imgNoticia;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -855,7 +891,6 @@ private void mostrarTabla() {
     private com.toedter.calendar.JDateChooser jdFinal;
     private com.toedter.calendar.JDateChooser jdInicio;
     private javax.swing.JTable tabla;
-    private javax.swing.JTextField txtBuscaTags;
     private javax.swing.JTextField txtBuscaTexto;
     private javax.swing.JLabel txtFecha;
     private javax.swing.JLabel txtId;
