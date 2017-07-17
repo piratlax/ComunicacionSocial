@@ -1,4 +1,7 @@
 package gui;
+
+import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -11,47 +14,71 @@ import java.util.Calendar;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
+import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import logica.Conector;
-
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.text.ParseException;
+import javax.swing.ImageIcon;
+import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import org.apache.commons.net.ftp.FTP;
+import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPReply;
 
 public class Noticias extends javax.swing.JFrame {
 // Se instancia una conexion de la clase conecta
-    Conector con=new Conector();
+
+    Conector con = new Conector();
     // se asigna la conexion a la base de datos con la variable cn
-    Connection cn=con.conecta();
-    
+    Connection cn = con.conecta();
+
     DefaultTableModel modelo;
-    
+
+    //direccion de la imagen
+    File file = null;
+
     public Noticias() {
         initComponents();
         this.setLocationRelativeTo(null);
         inicio();
         mostrarTabla();
+        txtId.setVisible(false);
+        
     }
-private void inicio(){
-    txtTags.setEnabled(false);
-    txtTitulo.setEnabled(false);
-    txtIntro.setEnabled(false);
-    txtTexto.setEnabled(false);
-    txtImagen.setEnabled(false);
-    btAgregar.setEnabled(false);
-}
-private void nuevo(){
-    txtTags.setEnabled(true);
-    txtTitulo.setEnabled(true);
-    txtIntro.setEnabled(true);
-    txtTexto.setEnabled(true);
-    txtImagen.setEnabled(true);
-    btAgregar.setEnabled(true);
-}
-private void fecha(){
-      SimpleDateFormat formateador = new SimpleDateFormat("EEEEEEEEE dd 'de'  MMMMM 'de' yyyy");
-      Calendar cal = Calendar.getInstance();
-      cal.setTimeZone(TimeZone.getDefault());
-      System.out.println(formateador.format(new Date()));
-      txtFecha.setText(formateador.format(new Date()));
-}
+
+    private void inicio() {
+        txtTags.setEnabled(false);
+        txtTitulo.setEnabled(false);
+        txtIntro.setEnabled(false);
+        txtTexto.setEnabled(false);
+        txtImagen.setEnabled(false);
+        btAgregar.setEnabled(false);
+    }
+
+    private void nuevo() {
+        txtTags.setEnabled(true);
+        txtTitulo.setEnabled(true);
+        txtIntro.setEnabled(true);
+        txtTexto.setEnabled(true);
+        txtImagen.setEnabled(true);
+        btAgregar.setEnabled(true);
+    }
+
+    private void fecha() {
+        SimpleDateFormat formateador = new SimpleDateFormat("EEEEEEEEE dd 'de'  MMMMM 'de' yyyy");
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeZone(TimeZone.getDefault());
+        System.out.println(formateador.format(new Date()));
+        txtFecha.setText(formateador.format(new Date()));
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -75,20 +102,21 @@ private void fecha(){
         txtTexto = new javax.swing.JTextArea();
         jLabel5 = new javax.swing.JLabel();
         txtTags = new javax.swing.JTextField();
+        txtId = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
         btBuscar = new javax.swing.JButton();
         btNueva = new javax.swing.JButton();
         btEditar = new javax.swing.JButton();
         btEliminar = new javax.swing.JButton();
-        jButton6 = new javax.swing.JButton();
+        btSalir = new javax.swing.JButton();
         jPanel4 = new javax.swing.JPanel();
         jLabel8 = new javax.swing.JLabel();
-        jDateChooser1 = new com.toedter.calendar.JDateChooser();
-        jDateChooser2 = new com.toedter.calendar.JDateChooser();
+        jdInicio = new com.toedter.calendar.JDateChooser();
+        jdFinal = new com.toedter.calendar.JDateChooser();
         jLabel9 = new javax.swing.JLabel();
         jLabel10 = new javax.swing.JLabel();
-        jTextField4 = new javax.swing.JTextField();
-        jTextField5 = new javax.swing.JTextField();
+        txtBuscaTags = new javax.swing.JTextField();
+        txtBuscaTexto = new javax.swing.JTextField();
         jLabel11 = new javax.swing.JLabel();
         jPanel5 = new javax.swing.JPanel();
         jScrollPane3 = new javax.swing.JScrollPane();
@@ -97,7 +125,7 @@ private void fecha(){
         txtImagen = new javax.swing.JTextField();
         btAgregar = new javax.swing.JButton();
         jLabel6 = new javax.swing.JLabel();
-        jLabel7 = new javax.swing.JLabel();
+        imgNoticia = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -127,6 +155,8 @@ private void fecha(){
 
         jLabel5.setText("Tags");
 
+        txtId.setText("_");
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -146,7 +176,8 @@ private void fecha(){
                             .addGroup(jPanel2Layout.createSequentialGroup()
                                 .addComponent(jLabel1)
                                 .addGap(18, 18, 18)
-                                .addComponent(txtFecha)))
+                                .addComponent(txtFecha))
+                            .addComponent(txtId))
                         .addGap(18, 18, 18)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addGroup(jPanel2Layout.createSequentialGroup()
@@ -174,17 +205,24 @@ private void fecha(){
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addComponent(txtTitulo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(txtId)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jLabel4))
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 98, Short.MAX_VALUE)
+                .addComponent(jScrollPane2)
                 .addContainerGap())
         );
 
         jPanel3.setBorder(javax.swing.BorderFactory.createTitledBorder("Menu"));
 
         btBuscar.setText("Buscar");
+        btBuscar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btBuscarActionPerformed(evt);
+            }
+        });
 
         btNueva.setText("Nueva");
         btNueva.addActionListener(new java.awt.event.ActionListener() {
@@ -194,10 +232,25 @@ private void fecha(){
         });
 
         btEditar.setText("Editar");
+        btEditar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btEditarActionPerformed(evt);
+            }
+        });
 
         btEliminar.setText("Eliminar");
+        btEliminar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btEliminarActionPerformed(evt);
+            }
+        });
 
-        jButton6.setText("Salir");
+        btSalir.setText("Salir");
+        btSalir.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btSalirActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -206,7 +259,7 @@ private void fecha(){
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jButton6, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btSalir, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(btEliminar, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 101, Short.MAX_VALUE)
                     .addComponent(btEditar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(btNueva, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -224,7 +277,7 @@ private void fecha(){
                 .addGap(18, 18, 18)
                 .addComponent(btEliminar)
                 .addGap(18, 18, 18)
-                .addComponent(jButton6)
+                .addComponent(btSalir)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -246,22 +299,22 @@ private void fecha(){
                 .addContainerGap()
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel4Layout.createSequentialGroup()
-                        .addComponent(jDateChooser1, javax.swing.GroupLayout.PREFERRED_SIZE, 149, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jdInicio, javax.swing.GroupLayout.PREFERRED_SIZE, 149, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jLabel9)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jDateChooser2, javax.swing.GroupLayout.PREFERRED_SIZE, 149, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(jdFinal, javax.swing.GroupLayout.PREFERRED_SIZE, 149, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jLabel8))
                 .addGap(18, 18, 18)
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jTextField4, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtBuscaTags, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel10))
                 .addGap(18, 18, 18)
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel4Layout.createSequentialGroup()
                         .addComponent(jLabel11)
-                        .addGap(0, 108, Short.MAX_VALUE))
-                    .addComponent(jTextField5))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(txtBuscaTexto))
                 .addContainerGap())
         );
         jPanel4Layout.setVerticalGroup(
@@ -269,7 +322,7 @@ private void fecha(){
             .addGroup(jPanel4Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jDateChooser2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jdFinal, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(jPanel4Layout.createSequentialGroup()
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel10, javax.swing.GroupLayout.Alignment.TRAILING)
@@ -277,10 +330,10 @@ private void fecha(){
                             .addComponent(jLabel8))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jDateChooser1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jdInicio, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(jTextField4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(jTextField5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                                .addComponent(txtBuscaTags, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(txtBuscaTexto, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
                     .addComponent(jLabel9))
                 .addContainerGap(18, Short.MAX_VALUE))
         );
@@ -320,10 +373,16 @@ private void fecha(){
         jPanel6.setBorder(javax.swing.BorderFactory.createTitledBorder("Imagen"));
 
         btAgregar.setText("Agregar");
+        btAgregar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btAgregarActionPerformed(evt);
+            }
+        });
 
         jLabel6.setText("Vista previa");
 
-        jLabel7.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        imgNoticia.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imagenes/noticia.png"))); // NOI18N
+        imgNoticia.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
         javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
         jPanel6.setLayout(jPanel6Layout);
@@ -340,7 +399,7 @@ private void fecha(){
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(jPanel6Layout.createSequentialGroup()
                         .addContainerGap()
-                        .addComponent(jLabel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addComponent(imgNoticia, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanel6Layout.setVerticalGroup(
@@ -353,7 +412,7 @@ private void fecha(){
                 .addGap(18, 18, 18)
                 .addComponent(jLabel6)
                 .addGap(18, 18, 18)
-                .addComponent(jLabel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(imgNoticia, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -406,10 +465,10 @@ private void fecha(){
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-private void mostrarTabla(){
+private void mostrarTabla() {
         String[] cabecera = {"Id", "Fecha", "Titulo"};
         String[] registros = new String[7];
-        String sql = "SELECT * FROM noticias";
+        String sql = "SELECT * FROM noticias ORDER BY id DESC";
         //establecemos los anchos en pixeles de las columnas
         int[] anchos = {0, 250, 600};
 
@@ -423,7 +482,7 @@ private void mostrarTabla(){
                 registros[0] = rs.getString("id");
                 registros[1] = rs.getString("fecha");
                 registros[2] = rs.getString("titulo");
-                
+
                 modelo.addRow(registros);
 
             }
@@ -433,46 +492,303 @@ private void mostrarTabla(){
                 tabla.setFont(new java.awt.Font("Tahoma", 0, 12));
             }
             tabla.getColumnModel().getColumn(0).setMaxWidth(0);
-        tabla.getColumnModel().getColumn(0).setMinWidth(0);
-        tabla.getColumnModel().getColumn(0).setPreferredWidth(0);
+            tabla.getColumnModel().getColumn(0).setMinWidth(0);
+            tabla.getColumnModel().getColumn(0).setPreferredWidth(0);
         } catch (SQLException ex) {
             System.out.println("Sin poder ejecutar el query a la tabla");
         }
     }
     private void btNuevaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btNuevaActionPerformed
-        if (btNueva.getText().equals("Nueva")){
-        nuevo();
-        btBuscar.setEnabled(false);
-        btEditar.setEnabled(false);
-        btEliminar.setEnabled(false);
-        btNueva.setText("Agregar");
-        fecha();
-        }else{
-         String fecha=txtFecha.getText();
-         String tags=txtTags.getText();
-         String titulo=txtTitulo.getText();
-         String intro=txtIntro.getText();
-         String texto=txtTexto.getText();
-         String imagen=txtImagen.getText();
-         try {
-                        String sql="INSERT INTO noticias (fecha,tags,titulo,intro,texto,imagen) "+
-                                "VALUES (?,?,?,?,?,?)";
-                        PreparedStatement ps=cn.prepareStatement(sql);
-                        ps.setString(1,fecha);
-                        ps.setString(2,tags);
-                        ps.setString(3,titulo);
-                        ps.setString(4,intro);
-                        ps.setString(5,texto);
-                        ps.setString(6,imagen);
-                        ps.executeUpdate();
-                        System.out.println ("integrado en la bd");
-                        
-                    } catch (SQLException e) {
-                         Logger.getLogger(Noticias.class.getName()).log(Level.SEVERE, null, e);
-                    }   
-         
+        if (btNueva.getText().equals("Nueva")) {
+            nuevo();
+            btBuscar.setEnabled(false);
+            btEditar.setEnabled(false);
+            btEliminar.setEnabled(false);
+            btNueva.setText("Agregar");
+            fecha();
+        } else {
+            if (txtTags.getText().equals("")) {
+                JOptionPane.showMessageDialog(this, "Te falta colocar Tags");
+                txtTags.requestFocus();
+            } else if (txtTitulo.getText().equals("")) {
+                JOptionPane.showMessageDialog(this, "Te falta colocar Titulo");
+                txtTitulo.requestFocus();
+            } else if (txtIntro.getText().equals("")) {
+                JOptionPane.showMessageDialog(this, "Te falta la cabecera de la noticia");
+                txtIntro.requestFocus();
+            } else if (txtTexto.getText().equals("")) {
+                JOptionPane.showMessageDialog(this, "Te falta colocar la Noticia");
+                txtTexto.requestFocus();
+            } else if (txtImagen.getText().equals("")) {
+                JOptionPane.showMessageDialog(this, "Te falta Agregar imagen");
+                txtImagen.requestFocus();
+            } else {
+                String fecha = txtFecha.getText();
+                String tags = txtTags.getText();
+                String titulo = txtTitulo.getText();
+                String intro = txtIntro.getText();
+                String texto = txtTexto.getText();
+                String imagen = txtImagen.getText();
+                try {
+                    String sql = "INSERT INTO noticias (fecha,tags,titulo,intro,texto,imagen) "
+                            + "VALUES (?,?,?,?,?,?)";
+                    PreparedStatement ps = cn.prepareStatement(sql);
+                    ps.setString(1, fecha);
+                    ps.setString(2, tags);
+                    ps.setString(3, titulo);
+                    ps.setString(4, intro);
+                    ps.setString(5, texto);
+                    ps.setString(6, imagen);
+                    ps.executeUpdate();
+                    btNueva.setText("Nueva");
+                    mostrarTabla();
+                    System.out.println("integrado en la bd");
+                    // proceso de la imagen
+                    procesaImagen();
+                    System.out.println("imagen procesada");
+                    //Manda Imagen por ftp
+                    subeImagen();
+                    System.out.println("imagen subida");
+                    //actualiza BD
+                    String id=tabla.getValueAt(0,0).toString();
+                    
+                    //actualizamos la bd
+                    Statement st;
+                    st=cn.createStatement();
+                    st.executeUpdate("UPDATE noticias set imagen='"+id+".png' WHERE id='"+id+"'");
+                    System.out.println("base de datos actualizada");
+                    //Limpiamos
+                    JOptionPane.showMessageDialog(this, "Noticia se ha publicado correctamente");
+                    Noticias frm=new Noticias();
+                    frm.setVisible(true);
+                    this.dispose();
+                } catch (SQLException e) {
+                    Logger.getLogger(Noticias.class.getName()).log(Level.SEVERE, null, e);
+                }
+            }
         }
     }//GEN-LAST:event_btNuevaActionPerformed
+    private void procesaImagen() {
+        try {
+            BufferedImage img = ImageIO.read(new File(txtImagen.getText()));
+
+            Image image = img.getScaledInstance(360, 230, Image.SCALE_SMOOTH);
+            BufferedImage buffered = new BufferedImage(360, 230, Image.SCALE_SMOOTH);
+            buffered.getGraphics().drawImage(image, 0, 0, null);
+            File outputfile = new File(tabla.getValueAt(0, 0).toString() + ".png");
+            ImageIO.write(buffered, "png", outputfile);
+        } catch (IOException e) {
+
+        }
+    }
+
+    private void subeImagen() {
+        FTPClient client = new FTPClient();
+        try {
+            client.connect("maorivera.com");
+            boolean login = client.login("cobat@maorivera.com", "Barbara2401");
+            if (login) {
+                System.out.println("Iniciando sesión Satisfactoriamente");
+                int replay = client.getReplyCode();
+                if (FTPReply.isPositiveCompletion(replay)) {
+                    File file = new File(tabla.getValueAt(0,0).toString()+".png");
+                    FileInputStream input = new FileInputStream(file);
+                    client.setFileType(FTP.BINARY_FILE_TYPE);
+                    client.enterLocalPassiveMode();
+                    System.out.println("Subió satisfactoriamente el archivo");
+                    if (!client.storeFile(file.getName(), input)) {
+                        System.out.println("Subida fallida!");
+                    }
+                    input.close();
+                }
+// Cuando cierras sesión el método logout regresa "true".
+                boolean logout = client.logout();
+                if (logout) {
+                    System.out.println("Salir del servidor FTP");
+                }
+            } else {
+                System.out.println("Falló inciar sesión");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+// Cierra la conexión al servidor FTP
+                client.disconnect();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+    }
+    private void btAgregarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btAgregarActionPerformed
+        //agregar imagen
+
+        // iniciamos de nuevo
+        JFileChooser seleccion = new JFileChooser();
+        //Titulo que llevara la ventana
+        seleccion.setDialogTitle("Selecciona la imagen de la noticia");
+        seleccion.setAcceptAllFileFilterUsed(false);
+        //Creamos el filtro
+        FileNameExtensionFilter filtro = new FileNameExtensionFilter("*.JPG", "jpg", "*.PNG", "png");
+
+        //Le indicamos el filtro
+        seleccion.setFileFilter(filtro);
+        int opcion = seleccion.showOpenDialog(this);
+        if (opcion == JFileChooser.APPROVE_OPTION) {
+
+            file = seleccion.getSelectedFile();
+            txtImagen.setText(file.toString());
+            ImageIcon icon = new ImageIcon(file.getPath());
+            Image conversion = icon.getImage();
+            Image escala = conversion.getScaledInstance(240, 138, Image.SCALE_SMOOTH);
+            ImageIcon calzado = new ImageIcon(escala);
+            imgNoticia.setIcon(calzado);
+
+        }
+    }//GEN-LAST:event_btAgregarActionPerformed
+
+    private void btEditarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btEditarActionPerformed
+        //editamos la nota
+        if (btEditar.getText().equals("Editar")){
+        int fila=tabla.getSelectedRow();
+       if (fila<0){
+                       JOptionPane.showMessageDialog(this, "Selecciona un elemento de la tabla");
+                 
+                            }
+       if (fila>=0){
+          btEditar.setText("Actualizar");
+          btNueva.setEnabled(false);
+          btAgregar.setEnabled(false);
+          btEliminar.setEnabled(false);
+          
+          txtTags.setEnabled(true);
+          txtTitulo.setEnabled(true);
+          txtIntro.setEnabled(true);
+          txtTexto.setEnabled(true);
+          String buscarNoticia;
+          buscarNoticia = tabla.getValueAt(fila,0).toString();
+          
+          try{
+              Statement buscar=cn.createStatement();
+              String sql=("SELECT * FROM noticias WHERE id='"+buscarNoticia+"'");
+              ResultSet resultado= buscar.executeQuery(sql);
+              
+              while (resultado.next()){
+                 txtId.setText(resultado.getString("id")); 
+                 txtTags.setText(resultado.getString("tags")); 
+                 txtFecha.setText(resultado.getString("fecha"));
+                 txtTitulo.setText(resultado.getString("titulo"));
+                 txtIntro.setText(resultado.getString("intro"));
+                 txtTexto.setText(resultado.getString("texto"));
+                 
+                 
+                 
+              }
+          } catch (SQLException ex) {
+               Logger.getLogger(Noticias.class.getName()).log(Level.SEVERE, null, ex);
+           }
+       }
+       }else if (btEditar.getText().equals("Actualizar")){
+           
+           String actualizar="update noticias set tags=?,titulo=?,intro=?,texto=? WHERE id='"+txtId.getText()+"'";
+        
+        try {
+            PreparedStatement ps;
+            ps = cn.prepareStatement(actualizar);
+            
+            ps.setString(1,txtTags.getText());
+            ps.setString(2,txtTitulo.getText());
+            ps.setString(3,txtIntro.getText());
+            ps.setString(4,txtTexto.getText());
+            
+            ps.executeUpdate();
+            
+            JOptionPane.showMessageDialog(null, "La noticia se ha actualizado correctamente");
+            //ya que se grabo en la base de datos pasamos a dejar todo de nuevo para un nueva noticia
+            btNueva.setEnabled(true);
+            btEditar.setEnabled(true);
+            btEditar.setText("Editar");
+            btEliminar.setEnabled(true);
+            btSalir.setEnabled(true);
+            btBuscar.setEnabled(true);
+            
+            txtTags.setText("");
+            txtFecha.setText("");
+            txtTitulo.setText("");
+            txtIntro.setText("");
+            txtTexto.setText("");
+            
+            mostrarTabla();
+            
+            
+            
+            // creamos la imagen de default del calzado
+            ImageIcon imagenDefault = new ImageIcon(getClass().getResource("/imagenes/noticia.png"));
+            imgNoticia.setIcon(imagenDefault);
+        } catch (SQLException ex) {
+            Logger.getLogger(Noticias.class.getName()).log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(null, "Hay un problema con la BD, la noticia no se ha actualizado");
+        }
+          
+       }
+        
+        
+    }//GEN-LAST:event_btEditarActionPerformed
+
+    private void btEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btEliminarActionPerformed
+         //Borrado de una noticia
+        
+        int fila = tabla.getSelectedRow();
+        
+       if (fila>=0){
+           String BuscarProducto;
+           BuscarProducto = tabla.getValueAt(fila, 0).toString();
+           
+           try{
+            Statement buscar = cn.createStatement();
+            ResultSet resultado = buscar.executeQuery( "SELECT * FROM noticias WHERE id='"+BuscarProducto+"'" );
+            while ( resultado.next() ) {
+              int respuesta=JOptionPane.showConfirmDialog(this, "Se va a eliminar la Siguiente nota\nfecha:"
+               +tabla.getValueAt(fila, 1).toString()+"\nTitulo:"
+               +tabla.getValueAt(fila, 2).toString(), "Confirmacion", 2);
+              
+              
+       //verificamos que informacion se va a eliminar 
+        if (respuesta==0){
+            try{
+            String sql="DELETE FROM noticias WHERE id="+tabla.getValueAt(fila,0);
+            Statement st;
+            st=cn.createStatement();
+            st.executeUpdate(sql);
+            JOptionPane.showMessageDialog(null,"Nota Eliminada");
+            mostrarTabla();
+            st.close();
+            
+            
+        }
+        catch (Exception ex){
+          JOptionPane.showMessageDialog(null,"no se elimino el elemento");
+        }
+                
+            }
+            }
+            }
+            catch (SQLException ex){
+           System.out.println ("Sin poder ejecutar el query a la tabla");
+       }
+           }
+       
+    }//GEN-LAST:event_btEliminarActionPerformed
+
+    private void btSalirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btSalirActionPerformed
+       System.exit(0);
+    }//GEN-LAST:event_btSalirActionPerformed
+
+    private void btBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btBuscarActionPerformed
+        //buscamos noticias
+        
+    }//GEN-LAST:event_btBuscarActionPerformed
 
     /**
      * @param args the command line arguments
@@ -515,9 +831,8 @@ private void mostrarTabla(){
     private javax.swing.JButton btEditar;
     private javax.swing.JButton btEliminar;
     private javax.swing.JButton btNueva;
-    private javax.swing.JButton jButton6;
-    private com.toedter.calendar.JDateChooser jDateChooser1;
-    private com.toedter.calendar.JDateChooser jDateChooser2;
+    private javax.swing.JButton btSalir;
+    private javax.swing.JLabel imgNoticia;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
@@ -526,7 +841,6 @@ private void mostrarTabla(){
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
@@ -538,10 +852,13 @@ private void mostrarTabla(){
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JTextField jTextField4;
-    private javax.swing.JTextField jTextField5;
+    private com.toedter.calendar.JDateChooser jdFinal;
+    private com.toedter.calendar.JDateChooser jdInicio;
     private javax.swing.JTable tabla;
+    private javax.swing.JTextField txtBuscaTags;
+    private javax.swing.JTextField txtBuscaTexto;
     private javax.swing.JLabel txtFecha;
+    private javax.swing.JLabel txtId;
     private javax.swing.JTextField txtImagen;
     private javax.swing.JTextArea txtIntro;
     private javax.swing.JTextField txtTags;
